@@ -10,4 +10,5 @@ func UserRoutes(userRouter *gin.RouterGroup) {
 	userRouter.PUT("/:id", controller.UpdateUser)
 	userRouter.DELETE("/:id", controller.DeleteUser)
 	userRouter.POST("/login", controller.LoginUser)
+	userRouter.GET("/me", controller.AuthMiddleware, controller.AuthUser)
 }

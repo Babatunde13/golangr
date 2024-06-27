@@ -1,7 +1,5 @@
 package response
 
-import "fmt"
-
 type Response struct {
 	Message 	string `json:"message" required:"true"`
 	Data 		interface{} `json:"data" required:"false"`
@@ -18,7 +16,6 @@ func SuccessResponse(data interface{}, message string) Response {
 }
 
 func ErrorResponse(err error, message string) Response {
-	fmt.Println(err)
 	return Response{
 		Message: message,
 		Error: err,

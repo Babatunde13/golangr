@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -27,8 +28,6 @@ func (uc *UserController) GetUsers(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse(err, "Failed to retrieve all users"))
 		return
 	}
-
-	fmt.Println(users)
 
 	c.JSON(http.StatusOK, response.SuccessResponse(users, "Successfully retrieved all users"))
 }
@@ -92,7 +91,6 @@ func (uc *UserController) LoginUser(c *gin.Context) {
 	}
 
 	user, err := userColl.LoginUser(user.Email, user.Password); if err != nil {
-		fmt.Println("Error: ", err)
 		c.JSON(http.StatusNotFound, response.ErrorResponse(nil, fmt.Sprintf("%v", err)))
 		return
 	}
@@ -111,3 +109,40 @@ func (uc *UserController) LoginUser(c *gin.Context) {
 	c.JSON(http.StatusOK, response.SuccessResponse(resp, "Successfully logged in"))
 }
 
+func (uc *UserController) AuthMiddleware(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse(nil, "Unauthorized"))
+		c.Abort()
+		return
+	}
+
+	token := strings.Split(authHeader, " ")[1]
+	if token == "" {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse(nil, "Unauthorized"))
+		c.Abort()
+		return
+	}
+
+	email, err := verifyToken(token); if err != nil {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse(nil, "Unauthorized"))
+		c.Abort()
+		return
+	}
+
+	user, err := userColl.GetUserByEmail(email); if err != nil {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse(err, "Unauthorized"))
+		return
+	}
+	c.Set("user", user)
+	c.Next()
+}
+
+func (uc *UserController) AuthUser(c *gin.Context) {
+	user, ok := c.Get("user"); if !ok {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse(nil, "Unauthorized"))
+		return
+	}
+
+	c.JSON(http.StatusOK, response.SuccessResponse(user, "Successfully authenticated user"))
+}

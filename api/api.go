@@ -1,10 +1,8 @@
 package api
 
 import (
-	"bkoiki950/go-store/api/album"
 	"bkoiki950/go-store/api/config"
 	"bkoiki950/go-store/api/database"
-	"bkoiki950/go-store/api/user"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -30,8 +28,8 @@ func Run () {
 			"message": "Welcome to our API",
 		})
 	})
-	album.AlbumRouter(r.Group("/albums"))
-	user.UserRoutes(r.Group("/users"))
+
+	Router(r)
 
 	r.Run(fmt.Sprintf(":%s", PORT))
 }

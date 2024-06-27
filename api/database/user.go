@@ -67,6 +67,7 @@ type IUserDB interface {
 	UpdateUser(id string, data User) (User, error)
 	DeleteUser(id string) (User, error)
 	LoginUser(email string, password string) (User, error)
+	GetUserByEmail(email string) (User, error)
 }
 
 type UserDB struct{}
@@ -225,6 +226,24 @@ func (c *UserDB) LoginUser(email string, password string) (User, error) {
 	isValid := utils.ComparePassword(user.Password, password)
 	if !isValid {
 		return User{}, fmt.Errorf(message)
+	}
+
+	return user, nil
+}
+
+func (c *UserDB) GetUserByEmail(email string) (User, error) {
+	var user User
+	var userColl, err = GetCollection("users")
+	if userColl == nil {
+		return user, err
+	}
+	filter, err := getUserFilterQuery(User{Email: email})
+	if err != nil {
+		return User{}, err
+	}
+	err = userColl.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return User{}, utils.HandleError(err, "User not found")
 	}
 
 	return user, nil
