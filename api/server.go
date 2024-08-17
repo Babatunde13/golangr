@@ -1,8 +1,8 @@
 package api
 
 import (
-	"bkoiki950/go-store/api/album"
-	"bkoiki950/go-store/api/user"
+	"github.com/Babatunde13/golangr/api/album"
+	"github.com/Babatunde13/golangr/api/user"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

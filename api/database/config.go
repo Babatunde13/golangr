@@ -1,7 +1,7 @@
 package database
 
 import (
-	"bkoiki950/go-store/api/config"
+	"github.com/Babatunde13/golangr/api/config"
 	"context"
 	"log"
 	"strings"

@@ -1,15 +1,31 @@
 package http
 
 import (
-	"bkoiki950/go-store/api/utils"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
+
+	"github.com/Babatunde13/golangr/api/utils"
 )
 
-func makeRequest (method string, url string, data interface{}) (interface{}, error) {
+type IHttp interface {
+	Get(url string, header interface{}) ([]byte, error)
+	Post(url string, header interface{}, d interface{}) ([]byte, error)
+	Put(url string, header interface{}, d interface{}) ([]byte, error)
+	Delete(url string, header interface{}) ([]byte, error)
+}
+
+type Http struct {}
+
+func New () IHttp {
+	h := &Http{}
+	return IHttp(h)
+}
+
+func makeRequest (method string, url string, data interface{}, header interface{}) ([]byte, error) {
 	var req *http.Request
 	var err error
 
@@ -30,7 +46,30 @@ func makeRequest (method string, url string, data interface{}) (interface{}, err
 		}
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	var headerMap map[string]string = make(map[string]string)
+	if header != nil {
+		h, ok := header.(map[string]string)
+		if !ok {
+			err = fmt.Errorf("header is not of type map[string]string")
+			fmt.Println("Header is not of type map[string]string")
+			return nil, err
+		}
+
+		headerMap = h
+	}
+
+	contentTypePresent := false
+	for key, value := range headerMap {
+		req.Header.Set(key, value)
+		if strings.ToLower(key) == "content-type" {
+			contentTypePresent = true
+		}
+	}
+
+	if !contentTypePresent {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
 	resp, err := client.Do(req); if err != nil {
 		return nil, err
 	}
@@ -44,23 +83,21 @@ func makeRequest (method string, url string, data interface{}) (interface{}, err
 		return nil, utils.HandleError(nil, fmt.Sprintf("Error: %s", string(body)))
 	}
 
-	var result interface{}
-	json.Unmarshal(body, &result)
-	return result, nil
+	return body, nil
 }
 
-func Get (url string) (data interface{}, err error) {
-	return makeRequest(http.MethodGet, url, nil)
+func (u *Http) Get (url string, header interface{}) ([]byte, error) {
+	return makeRequest(http.MethodGet, url, nil, header)
 }
 
-func Post (url string, data interface{}) (interface{}, error) {
-	return makeRequest(http.MethodPost, url, data)
+func (u *Http) Post (url string, header interface{}, data interface{}) ([]byte, error) {
+	return makeRequest(http.MethodPost, url, data, header)
 }
 
-func Put (url string, data interface{}) (interface{}, error) {
-	return makeRequest(http.MethodPut, url, data)
+func (u *Http) Put (url string, header interface{}, data interface{}) ([]byte, error) {
+	return makeRequest(http.MethodPut, url, data, header)
 }
 
-func Delete (url string) (interface{}, error) {
-	return makeRequest(http.MethodDelete, url, nil)
+func (u *Http) Delete (url string, header interface{}) ([]byte, error) {
+	return makeRequest(http.MethodDelete, url, nil, header)
 }

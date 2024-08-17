@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"bkoiki950/go-store/api/database"
-	"bkoiki950/go-store/api/response"
+	"github.com/Babatunde13/golangr/api/database"
+	"github.com/Babatunde13/golangr/api/response"
 )
 
 func CreateAlbumController() *AlbumController {

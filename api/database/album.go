@@ -1,7 +1,7 @@
 package database
 
 import (
-	"bkoiki950/go-store/api/utils"
+	"github.com/Babatunde13/golangr/api/utils"
 	"context"
 	"fmt"
 

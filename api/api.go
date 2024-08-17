@@ -1,8 +1,8 @@
 package api
 
 import (
-	"bkoiki950/go-store/api/config"
-	"bkoiki950/go-store/api/database"
+	"github.com/Babatunde13/golangr/api/config"
+	"github.com/Babatunde13/golangr/api/database"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +21,7 @@ func Run () {
 	if PORT == "" {
 		PORT = "8080"
 	}
-	
+
 	r := gin.Default()
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -32,4 +32,5 @@ func Run () {
 	Router(r)
 
 	r.Run(fmt.Sprintf(":%s", PORT))
+	fmt.Println("Server running on " + PORT)
 }

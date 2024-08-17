@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bkoiki950/go-store/api"
+	"github.com/Babatunde13/golangr/api"
 )
 
 func main() {

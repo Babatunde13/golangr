@@ -1,4 +1,4 @@
-module bkoiki950/go-store
+module github.com/Babatunde13/golangr
 
 go 1.21.1
 

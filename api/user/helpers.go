@@ -1,8 +1,8 @@
 package user
 
 import (
-	"bkoiki950/go-store/api/config"
-	"bkoiki950/go-store/api/database"
+	"github.com/Babatunde13/golangr/api/config"
+	"github.com/Babatunde13/golangr/api/database"
 
 	"github.com/golang-jwt/jwt"
 )
