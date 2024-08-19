@@ -13,4 +13,6 @@ func UserRoutes(userRouter *gin.RouterGroup) {
 	userRouter.GET("/me", controller.AuthMiddleware(), controller.AuthUser())
 	userRouter.POST("/ai/suggest", controller.AuthMiddleware(), controller.SuggestWithGPT())
 	userRouter.POST("/ai/tts", controller.AuthMiddleware(), controller.TextToSpeech())
+	userRouter.POST("/upload", controller.AuthMiddleware(), controller.Upload())
+	userRouter.GET("/download", controller.AuthMiddleware(), controller.Download())
 }

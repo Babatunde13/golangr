@@ -25,6 +25,8 @@ type IUserController interface {
 	AuthUser() gin.HandlerFunc
 	SuggestWithGPT() gin.HandlerFunc
 	TextToSpeech() gin.HandlerFunc
+	Upload() gin.HandlerFunc
+	Download() gin.HandlerFunc
 }
 
 type UserController struct{}

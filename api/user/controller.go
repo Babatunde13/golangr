@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"runtime"
 	"strings"
@@ -260,5 +261,70 @@ func (uc *UserController) TextToSpeech() gin.HandlerFunc {
 			map[string]interface{}{
 				"message": "audio generated successfully",
 			}, "Successfully"))
+	}
+}
+
+func (uc *UserController) Upload() gin.HandlerFunc {
+	return func (c *gin.Context) {
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+		fmt.Println("Memory usage before file upload: ", m.Alloc/1024, "kb")
+		
+		_, ok := c.Get("user"); if !ok {
+			c.JSON(http.StatusUnauthorized, response.ErrorResponse(nil, "Unauthorized"))
+			return
+		}
+
+		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 500<<20)
+
+		file, header, err := c.Request.FormFile("file"); if err != nil {
+			c.JSON(http.StatusBadRequest, response.ErrorResponse(err, "Failed to parse file"))
+			return
+		}
+
+		defer file.Close()
+
+		fileName := header.Filename
+		fmt.Println("File name: ", fileName)
+		filepath := "uploads/" + fileName
+		out, err := utils.CreateFile(filepath); if err != nil {
+			c.JSON(http.StatusInternalServerError, response.ErrorResponse(err, "Failed to create file"))
+			return
+		}
+
+		defer out.Close()
+
+		_, err = io.Copy(out, file); if err != nil {
+			c.JSON(http.StatusInternalServerError, response.ErrorResponse(err, "Failed to save file"))
+			return
+		}
+
+		// get host programmatically
+		fileurl := utils.GetFullURL(c) + "/api/v1/users/download?filename=" + fileName
+		runtime.ReadMemStats(&m)
+		fmt.Println("Memory usage after file upload: ", m.Alloc/1024, "kb")
+		c.JSON(http.StatusOK, response.SuccessResponse(
+			map[string]interface{}{
+				"message": "file uploaded successfully",
+				"link": fileurl,
+			}, "Successfully"),
+		)
+	}
+}
+
+func (uc *UserController) Download() gin.HandlerFunc {
+	return func (c *gin.Context) {
+		_, ok := c.Get("user"); if !ok {
+			c.JSON(http.StatusUnauthorized, response.ErrorResponse(nil, "Unauthorized"))
+			return
+		}
+
+		fileName, _ := c.GetQuery("filename"); if fileName == "" {
+			c.JSON(http.StatusBadRequest, response.ErrorResponse(nil, "Filename is required"))
+			return
+		}
+		filePath := "uploads/" + fileName
+		fmt.Println("File path: ", filePath)
+		c.File(filePath)
 	}
 }

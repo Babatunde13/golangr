@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -139,4 +141,31 @@ func SaveBase64ToDisk(encodedString, filePath string) error {
 
 	fmt.Println("File saved successfully to:", filePath)
 	return nil
+}
+
+func CreateFile(filePath string) (*os.File, error) {
+	folders := strings.Split(filePath, "/")
+	folderPath := strings.Join(folders[:len(folders)-1], "/")
+	if _, err := os.Stat(folderPath); os.IsNotExist(err) {
+		err := os.MkdirAll(folderPath, os.ModePerm)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create folder: %v", err)
+		}
+	}
+	file, err := os.Create(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create file: %v", err)
+	}
+
+	return file, nil
+}
+
+func GetFullURL(c *gin.Context) string {
+    scheme := "http"
+    if c.Request.TLS != nil {
+        scheme = "https"
+    }
+
+    fullURL := fmt.Sprintf("%s://%s", scheme, c.Request.Host)
+    return fullURL
 }
