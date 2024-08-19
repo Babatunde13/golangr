@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"runtime"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -164,6 +165,10 @@ func (uc *UserController) AuthUser() gin.HandlerFunc {
 
 func (uc *UserController) SuggestWithGPT() gin.HandlerFunc {
 	return func (c *gin.Context) {
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+		fmt.Println("Memory usage before GPT call: ", m.Alloc/1024, "kb")
+
 		_, ok := c.Get("user"); if !ok {
 			c.JSON(http.StatusUnauthorized, response.ErrorResponse(nil, "Unauthorized"))
 			return
@@ -175,7 +180,7 @@ func (uc *UserController) SuggestWithGPT() gin.HandlerFunc {
 			return
 		}
 
-		message := body.Message
+		message, _ := c.GetQuery("message")
 		httpClient := internalhttp.New()
 
 		fmt.Println(utils.ComputeGPTPrompt(message))
@@ -199,12 +204,20 @@ func (uc *UserController) SuggestWithGPT() gin.HandlerFunc {
 			return
 		}
 
+		var m2 runtime.MemStats
+		runtime.ReadMemStats(&m2)
+		fmt.Println("Memory usage after GPT call: ", m2.Alloc/1024, "kb")
+
 		c.JSON(http.StatusOK, response.SuccessResponse(r.Choices[0].Message.Content, "Successfully"))
 	}
 }
 
 func (uc *UserController) TextToSpeech() gin.HandlerFunc {
 	return func (c *gin.Context) {
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+		fmt.Println("Memory usage before GPT call: ", m.Alloc/1024, "kb")
+
 		_, ok := c.Get("user"); if !ok {
 			c.JSON(http.StatusUnauthorized, response.ErrorResponse(nil, "Unauthorized"))
 			return
@@ -241,12 +254,8 @@ func (uc *UserController) TextToSpeech() gin.HandlerFunc {
 
 		base64String := r.AudioContent
 
-		// save file to disk
-		err = utils.SaveBase64ToDisk(base64String, "hello.mp3"); if err != nil {
-			fmt.Println("Something went wronng: ", err)
-		}
+		go utils.SaveBase64ToDisk(base64String, "hello.mp3")
 
-		fmt.Println("Saved successfully!")
 		c.JSON(http.StatusOK, response.SuccessResponse(
 			map[string]interface{}{
 				"message": "audio generated successfully",
